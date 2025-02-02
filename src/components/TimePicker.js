@@ -1,7 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const TimePicker = ({ setSelectedTime, selectedTime, setShowTimePicker }) => {
+const TimePicker = ({
+  setSelectedTime,
+  selectedTime,
+  setShowTimePicker,
+  selectedDate,
+}) => {
   const [time, setTime] = useState(selectedTime);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setError("");
+  }, [time]);
 
   const handleTimeChange = (field, value) => {
     setTime((prev) => ({
@@ -11,6 +21,48 @@ const TimePicker = ({ setSelectedTime, selectedTime, setShowTimePicker }) => {
   };
 
   const handleConfirm = () => {
+    const now = new Date();
+    const date = selectedDate ? new Date(selectedDate) : now; // Ensure selectedDate is a valid Date object
+    const isToday = date.toDateString() === now.toDateString();
+
+    const selectedHours =
+      time.period === "PM" ? (time.hours % 12) + 12 : time.hours % 12;
+    const selectedMinutes = time.minutes;
+
+    if (isToday) {
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+
+      if (
+        selectedHours < currentHours ||
+        (selectedHours === currentHours && selectedMinutes <= currentMinutes)
+      ) {
+        setError(
+          "Selected time is in the past. Adjusting to the next available time."
+        );
+
+        let newHours = currentHours;
+        let newMinutes = Math.ceil((currentMinutes + 1) / 15) * 15; // Round up to the next 15-minute slot
+
+        if (newMinutes >= 60) {
+          newMinutes = 0;
+          newHours++;
+        }
+
+        const newPeriod = newHours >= 12 ? "PM" : "AM";
+        newHours =
+          newHours > 12 ? newHours - 12 : newHours === 0 ? 12 : newHours;
+
+        setTime({
+          hours: newHours,
+          minutes: newMinutes,
+          period: newPeriod,
+        });
+
+        return;
+      }
+    }
+
     setSelectedTime(time);
     setShowTimePicker(false);
   };
@@ -18,6 +70,7 @@ const TimePicker = ({ setSelectedTime, selectedTime, setShowTimePicker }) => {
   return (
     <div className="absolute left-0 mt-2 bg-white p-4 shadow-lg rounded-lg z-10">
       <h4 className="text-lg font-medium mb-2">Pick a Time</h4>
+      {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
       <div className="flex justify-between items-center gap-2 mb-4">
         <select
           value={time.hours}
