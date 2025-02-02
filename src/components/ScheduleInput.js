@@ -12,8 +12,8 @@ const ScheduleInput = () => {
 
   const [currentProfile, setCurrentProfile] = useState({
     id: 1,
-    name: "Yuvraj Singh",
-    email: "yuvrajsingh@gmail.com",
+    name: "Bharti Jayprakash",
+    email: "bhartijayprakash@gmail.com",
     image: "/api/placeholder/48/48",
   });
 

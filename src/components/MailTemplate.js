@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 
 const TimePicker = ({ setSelectedTime, selectedTime, setShowTimePicker, selectedDate }) => {
-  const [time, setTime] = useState(selectedTime);
+  const [time, setTime] = useState(
+    selectedTime || { hours: 12, minutes: 0, period: "AM" }
+  );
+
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -17,7 +20,7 @@ const TimePicker = ({ setSelectedTime, selectedTime, setShowTimePicker, selected
 
   const handleConfirm = () => {
     const now = new Date();
-    const date = selectedDate ? new Date(selectedDate) : now; // Ensure selectedDate is a valid Date object
+    const date = selectedDate ? new Date(selectedDate) : now; 
     const isToday = date.toDateString() === now.toDateString();
   
     const selectedHours = time.period === "PM" ? (time.hours % 12) + 12 : time.hours % 12;
@@ -34,7 +37,7 @@ const TimePicker = ({ setSelectedTime, selectedTime, setShowTimePicker, selected
         setError("Selected time is in the past. Adjusting to the next available time.");
         
         let newHours = currentHours;
-        let newMinutes = Math.ceil((currentMinutes + 1) / 15) * 15; // Round up to the next 15-minute slot
+        let newMinutes = Math.ceil((currentMinutes + 1) / 15) * 15; 
   
         if (newMinutes >= 60) {
           newMinutes = 0;
