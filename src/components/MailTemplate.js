@@ -32,6 +32,15 @@ const MailTemplateEditor = () => {
         const res = await fetch("/api/templates");
         const data = await res.json();
         setTemplates(data);
+<<<<<<< HEAD
+=======
+        
+        if (data.length > 0) {
+          setSelectedTemplate(data[0]); // Select the first template by default
+          setSubject(data[0].subject);
+          setBody(data[0].body);
+        }
+>>>>>>> fc1646f (Files added)
       } catch (err) {
         setError("Failed to load templates");
         console.error(err);
@@ -39,9 +48,16 @@ const MailTemplateEditor = () => {
         setLoading(false);
       }
     };
+<<<<<<< HEAD
 
     fetchTemplates();
   }, []);
+=======
+  
+    fetchTemplates();
+  }, []);
+  
+>>>>>>> fc1646f (Files added)
 
   // Validate input lengths
   const validateInput = () => {
