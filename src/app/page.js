@@ -2,7 +2,7 @@
 
 import ScheduleInput from "@/components/ScheduleInput";
 import MailTemplateEditor from "@/components/MailTemplate";
-import ScheduledList from "@/components/ScheduledList";
+
 
 export default function Home() {
   return (
