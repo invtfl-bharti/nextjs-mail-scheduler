@@ -1,38 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import useOutsideClick from "@/custom-hooks/useOutsideClick";
 
-const TimePicker = ({
-  setSelectedTime,
-  selectedTime,
-  setShowTimePicker,
-  selectedDate,
-}) => {
-  const now = new Date();
-  const date = selectedDate ? new Date(selectedDate) : now;
-  const isToday = date.toDateString() === now.toDateString();
-
-  // ✅ Get the next available 15-minute slot
-  const getNextAvailableTime = () => {
-    let hours = now.getHours();
-    let minutes = Math.ceil(now.getMinutes() / 15) * 15;
-
-    if (minutes >= 60) {
-      minutes = 0;
-      hours++;
-    }
-
-    const period = hours >= 12 ? "PM" : "AM";
-    hours = hours > 12 ? hours - 12 : hours || 12;
-
-    return { hours, minutes, period };
-  };
-
-  const [time, setTime] = useState(
-    selectedTime ||
-      (isToday
-        ? getNextAvailableTime()
-        : { hours: 12, minutes: 0, period: "AM" })
-  );
+const TimePicker = ({ setSelectedTime, selectedTime, setShowTimePicker, selectedDate }) => {
+  const [time, setTime] = useState(() => {
+    return selectedTime && typeof selectedTime === "object"
+      ? { ...selectedTime }
+      : { hours: 12, minutes: 0, period: "AM" };
+  });
 
   const dropdownRef = useRef(null);
   useOutsideClick(dropdownRef, () => setShowTimePicker(false));
@@ -50,46 +24,69 @@ const TimePicker = ({
     }));
   };
 
+  const isSelectedDateToday = () => {
+    if (!selectedDate) return false;
+    const today = new Date();
+    const selected = new Date(selectedDate);
+    return (
+      selected.getDate() === today.getDate() &&
+      selected.getMonth() === today.getMonth() &&
+      selected.getFullYear() === today.getFullYear()
+    );
+  };
+
   const handleConfirm = () => {
     if (!time) {
       setError("Invalid time selection.");
       return;
     }
 
-    const { hours, minutes, period } = time;
-    let selectedHours = period === "PM" ? (hours % 12) + 12 : hours % 12;
-    let selectedMinutes = minutes;
+    const { hours = 12, minutes = 0, period = "AM" } = time;
+    const selectedHours = period === "PM" ? (hours % 12) + 12 : hours % 12;
+    const selectedMinutes = minutes;
 
-    if (isToday) {
+    // Only validate time if the selected date is today
+    if (isSelectedDateToday()) {
+      const now = new Date();
       const currentHours = now.getHours();
       const currentMinutes = now.getMinutes();
 
-      if (
-        selectedHours < currentHours ||
-        (selectedHours === currentHours && selectedMinutes <= currentMinutes)
-      ) {
-        setError("Selected time is in the past. Please select a future time.");
+      if (selectedHours < currentHours || (selectedHours === currentHours && selectedMinutes <= currentMinutes)) {
+        setError("Selected time is in the past. Adjusting to the next available time.");
 
-        // Auto-select the next valid time
-        setTime(getNextAvailableTime());
+        let newHours = currentHours;
+        let newMinutes = Math.ceil((currentMinutes + 1) / 15) * 15;
+
+        if (newMinutes >= 60) {
+          newMinutes = 0;
+          newHours++;
+        }
+
+        const newPeriod = newHours >= 12 ? "PM" : "AM";
+        newHours = newHours > 12 ? newHours - 12 : newHours === 0 ? 12 : newHours;
+
+        setTime({
+          hours: newHours,
+          minutes: newMinutes,
+          period: newPeriod,
+        });
+
         return;
       }
     }
-
+    
+    // For non-today dates or valid times, set the time without further validation
     setSelectedTime(time);
     setShowTimePicker(false);
   };
 
   return (
-    <div
-      ref={dropdownRef}
-      className="absolute bottom-16 right-0 mt-2 bg-zinc-100 p-4 shadow-lg rounded-lg z-10"
-    >
+    <div ref={dropdownRef} className="absolute bottom-16 right-0 mt-2 bg-zinc-100 p-4 shadow-lg rounded-lg z-10">
       <h4 className="text-lg font-medium mb-2">Pick a Time</h4>
       {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
       <div className="flex justify-between items-center gap-2 mb-4">
         <select
-          value={time.hours}
+          value={time?.hours || 12}
           onChange={(e) => handleTimeChange("hours", parseInt(e.target.value))}
           className="px-3 py-2 border rounded-md"
         >
@@ -101,10 +98,8 @@ const TimePicker = ({
         </select>
         <span>:</span>
         <select
-          value={time.minutes}
-          onChange={(e) =>
-            handleTimeChange("minutes", parseInt(e.target.value))
-          }
+          value={time?.minutes || 0}
+          onChange={(e) => handleTimeChange("minutes", parseInt(e.target.value))}
           className="px-3 py-2 border rounded-md"
         >
           {[0, 15, 30, 45].map((minute) => (
@@ -114,7 +109,7 @@ const TimePicker = ({
           ))}
         </select>
         <select
-          value={time.period}
+          value={time?.period || "AM"}
           onChange={(e) => handleTimeChange("period", e.target.value)}
           className="px-3 py-2 border rounded-md"
         >
@@ -140,9 +135,8 @@ const TimePicker = ({
   );
 };
 
-// ✅ Default to null to prevent errors
 TimePicker.defaultProps = {
-  selectedTime: null,
+  selectedTime: { hours: 12, minutes: 0, period: "AM" },
 };
 
 export default TimePicker;
