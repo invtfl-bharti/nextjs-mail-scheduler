@@ -15,8 +15,8 @@ const ScheduleInput = () => {
   // Data states
   const [currentProfile, setCurrentProfile] = useState({
     id: 1,
-    name: "Yuvraj Singh",
-    email: "yuvrajsingh@gmail.com",
+    name: "Bharti Jayprakash",
+    email: "bhartijayprakash@gmail.com",
     image: "https://cdn-icons-png.flaticon.com/512/4042/4042326.png",
   });
   const [profiles, setProfiles] = useState([]);
