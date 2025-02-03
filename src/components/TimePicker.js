@@ -7,11 +7,32 @@ const TimePicker = ({
   setShowTimePicker,
   selectedDate,
 }) => {
-  const [time, setTime] = useState(() => {
-    return selectedTime && typeof selectedTime === "object"
-      ? { ...selectedTime }
-      : { hours: 12, minutes: 0, period: "AM" };
-  });
+  const now = new Date();
+  const date = selectedDate ? new Date(selectedDate) : now;
+  const isToday = date.toDateString() === now.toDateString();
+
+  // ✅ Get the next available 15-minute slot
+  const getNextAvailableTime = () => {
+    let hours = now.getHours();
+    let minutes = Math.ceil(now.getMinutes() / 15) * 15;
+
+    if (minutes >= 60) {
+      minutes = 0;
+      hours++;
+    }
+
+    const period = hours >= 12 ? "PM" : "AM";
+    hours = hours > 12 ? hours - 12 : hours || 12;
+
+    return { hours, minutes, period };
+  };
+
+  const [time, setTime] = useState(
+    selectedTime ||
+      (isToday
+        ? getNextAvailableTime()
+        : { hours: 12, minutes: 0, period: "AM" })
+  );
 
   const dropdownRef = useRef(null);
   useOutsideClick(dropdownRef, () => setShowTimePicker(false));
@@ -35,13 +56,9 @@ const TimePicker = ({
       return;
     }
 
-    const { hours = 12, minutes = 0, period = "AM" } = time;
-    const now = new Date();
-    const date = selectedDate ? new Date(selectedDate) : now;
-    const isToday = date.toDateString() === now.toDateString();
-
-    const selectedHours = period === "PM" ? (hours % 12) + 12 : hours % 12;
-    const selectedMinutes = minutes;
+    const { hours, minutes, period } = time;
+    let selectedHours = period === "PM" ? (hours % 12) + 12 : hours % 12;
+    let selectedMinutes = minutes;
 
     if (isToday) {
       const currentHours = now.getHours();
@@ -51,28 +68,10 @@ const TimePicker = ({
         selectedHours < currentHours ||
         (selectedHours === currentHours && selectedMinutes <= currentMinutes)
       ) {
-        setError(
-          "Selected time is in the past. Adjusting to the next available time."
-        );
+        setError("Selected time is in the past. Please select a future time.");
 
-        let newHours = currentHours;
-        let newMinutes = Math.ceil((currentMinutes + 1) / 15) * 15;
-
-        if (newMinutes >= 60) {
-          newMinutes = 0;
-          newHours++;
-        }
-
-        const newPeriod = newHours >= 12 ? "PM" : "AM";
-        newHours =
-          newHours > 12 ? newHours - 12 : newHours === 0 ? 12 : newHours;
-
-        setTime({
-          hours: newHours,
-          minutes: newMinutes,
-          period: newPeriod,
-        });
-
+        // Auto-select the next valid time
+        setTime(getNextAvailableTime());
         return;
       }
     }
@@ -90,7 +89,7 @@ const TimePicker = ({
       {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
       <div className="flex justify-between items-center gap-2 mb-4">
         <select
-          value={time?.hours || 12}
+          value={time.hours}
           onChange={(e) => handleTimeChange("hours", parseInt(e.target.value))}
           className="px-3 py-2 border rounded-md"
         >
@@ -102,7 +101,7 @@ const TimePicker = ({
         </select>
         <span>:</span>
         <select
-          value={time?.minutes || 0}
+          value={time.minutes}
           onChange={(e) =>
             handleTimeChange("minutes", parseInt(e.target.value))
           }
@@ -115,7 +114,7 @@ const TimePicker = ({
           ))}
         </select>
         <select
-          value={time?.period || "AM"}
+          value={time.period}
           onChange={(e) => handleTimeChange("period", e.target.value)}
           className="px-3 py-2 border rounded-md"
         >
@@ -141,9 +140,9 @@ const TimePicker = ({
   );
 };
 
-// ✅ Add default props to prevent undefined errors
+// ✅ Default to null to prevent errors
 TimePicker.defaultProps = {
-  selectedTime: { hours: 12, minutes: 0, period: "AM" },
+  selectedTime: null,
 };
 
 export default TimePicker;
