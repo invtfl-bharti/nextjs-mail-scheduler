@@ -1,6 +1,7 @@
-import { useRef, React } from "react";
-import { Check, UserPlus } from "lucide-react";
+import {useRef, React }  from "react";
+import { Check, UserPlus,} from "lucide-react";
 import useOutsideClick from "@/custom-hooks/useOutsideClick";
+
 
 const ProfileSwitcher = ({
   setCurrentProfile,
@@ -11,10 +12,12 @@ const ProfileSwitcher = ({
   newProfile,
   setShowNewProfileForm,
   setNewProfile,
-  setProfiles,
+  setProfiles
 }) => {
-  const dropdownRef = useRef(null);
-  useOutsideClick(dropdownRef, () => setShowProfileMenu(false));
+
+    const dropdownRef = useRef(null);
+    useOutsideClick(dropdownRef, () => setShowProfileMenu(false));
+
 
   const handleCreateProfile = (e) => {
     e.preventDefault();
@@ -33,10 +36,7 @@ const ProfileSwitcher = ({
   };
 
   return (
-    <div
-      ref={dropdownRef}
-      className="absolute top-full right-0 mt-1 w-72 bg-white border rounded-lg shadow-lg z-20"
-    >
+    <div ref={dropdownRef} className="absolute top-full right-0 mt-1 w-72 bg-white border rounded-lg shadow-lg z-20">
       {!showNewProfileForm ? (
         <div className="p-2">
           <div className="space-y-1">
