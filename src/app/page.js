@@ -1,5 +1,4 @@
 "use client";
-
 import ScheduleInput from "@/components/ScheduleInput";
 import MailTemplateEditor from "@/components/MailTemplate";
 import ScheduledList from "@/components/ScheduledList";
